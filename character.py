@@ -13,15 +13,19 @@ from twisted.internet.defer import DeferredQueue
 from time import sleep
 import os
 import sys
+from random import randint
 from twisted.python import log
 from threading import Thread
 log.startLogging(sys.stdout)
 
 c_made = False
+stations_sent = False
 
 enemy_x = 10
 enemy_y = 10
 
+stations = []
+s_colors = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ########## COMMAND CONNECTION ##################
 class MyCommandConnection(Protocol):
     def connectionMade(self):
@@ -37,15 +41,11 @@ class MyCommandConnection(Protocol):
         global enemy_y
         data = data.split(b":")
         if data[0] == b"XY":
-            print("changing x and y...")
             enemy_x = int(data[1])
             enemy_y = int(data[2].strip(b'XY').strip(b'S'))
-            print(enemy_x)
-            print(enemy_y)
         elif data[0] == b"S":
             global light_size
             light_size = int(data[1].strip(b'S').strip(b'XY'))
-        print("got data:")
 
 class MyCommandConnectionFactory(Factory):
     def __init__(self):
@@ -79,8 +79,16 @@ class SpotLight:
 class GameSpace:
     def sendSelfXY(self, x, y):
         global connection
-        connection.write("xy:{}:{}".format(x, y).encode('utf-8'))
-        
+        connection.write("xy:{}:{}#".format(x, y).encode('utf-8'))
+       
+    def sendStation(self, x, y): #x2, y2, x3, y3, x4, y4, x5, y5, x6, y6, x7, y7, x8, y8):
+        global connection
+        connection.write("s:{}:{}#".format(x, y).encode('utf-8'))
+
+    def sendColor(self, num, col):
+        global connection
+        connection.write("c:{}:{}#".format(num, col).encode('utf-8'))
+
     def main(self):
         global light_size
         r_val = 100 # red value of player
@@ -88,10 +96,31 @@ class GameSpace:
         light_size = max_light # light_size changes when light shined on player
         old_pos = [0, 0] # to detect change in mouse position
         old_rects = [] # to track rects that need to be black filled
-
+        num_stations = 10
         pygame.init()
         self.width = 1280
         self.height = 840
+        global stations
+        for s in range(0, num_stations):
+            rand_x = randint(10, self.width-50)
+            rand_y = randint(10, self.height-50)
+            new_rect = Rect(rand_x - 35, rand_y - 35, 70, 70)
+            collision = False
+            for r in stations:
+                if r.colliderect(new_rect):
+                    collision = True
+                    break
+            if not collision:
+                stations.append(new_rect)
+            else:
+                s -= 1 # if collision, generate new rect
+        global s_colors
+        global c_made
+        index = 0
+        if c_made:
+            for c in s_colors:
+                self.sendColor(index, c)
+                index += 1
         self.black = 0,0,0
         self.character = r_val, 0, 0 # character is square plain color
         self.size = self.width, self.height
@@ -101,7 +130,6 @@ class GameSpace:
         self.light0 = SpotLight()
         self.star.star_rect.x = 150
         self.star.star_rect.y = 150
-        global c_made
         if c_made:
             self.sendSelfXY(150, 150)
         self.clock = pygame.time.Clock()
@@ -109,27 +137,37 @@ class GameSpace:
         pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP]) # better performance
         self.mouse_down = False
         old_light = self.light.light_rect
+        old_char = self.star.star_rect
         Thread(target=reactor.run, args=(False, )).start()
+        clear_old_char = False
         while 1:
+            #global stations_sent
+            #if c_made and not stations_sent:
+                #print("send stations")
+                #for i in range(0, 7):
+                #stations_sent = True
             self.clock.tick(60)
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
+                    clear_old_char = True
                     if event.key == K_LEFT:
                         self.star.star_rect.x -= 50
                         if self.star.star_rect.x < 20:
                             self.star.star_rect.x = 20
-                    if event.key == K_RIGHT:
+                    elif event.key == K_RIGHT:
                         self.star.star_rect.x += 50
                         if self.star.star_rect.x > self.width-20:
                             self.star.star_rect.x = self.width-20
-                    if event.key == K_UP:
+                    elif event.key == K_UP:
                         self.star.star_rect.y -= 50
                         if self.star.star_rect.y < 20:
                             self.star.star_rect.y = 20
-                    if event.key == K_DOWN:
+                    elif event.key == K_DOWN:
                         self.star.star_rect.y += 50
                         if self.star.star_rect.y > self.height-20:
                             self.star.star_rect.y = self.height-20
+                    else:
+                        clear_old_char = False  
                     global c_made
                     if c_made:
                         self.sendSelfXY(self.star.star_rect.x, self.star.star_rect.y)
@@ -162,12 +200,35 @@ class GameSpace:
             self.screen.blit(self.light.light, self.light.light_rect)
             self.screen.blit(rot_star, rect)
 
+            if clear_old_char:
+                s.fill(self.black, old_char)
+
             # red value of character will change if spotlight shined
-            self.character = 0, 250, 250
+            self.character = 0, 0, 250
             s.fill(self.character, rect)
+            self.station = 0, 250, 0
+            self.cyan = 40, 40, 5
+            global s_colors
+            global stations
+            counter = 0
+            for st in stations:
+                s.fill(self.station, st)
+                if s_colors[counter]:
+                    active_rects.append(st) 
+                if st.colliderect(rect):
+                    self.sendStation(st.x, st.y)# stations[1][0], stations[1][1], stations[2][0], stations[2][1], stations[3][0], stations[3][1], stations[4][0], stations[4][1], stations[5][0], stations[5][1], stations[6][0], stations[6][1], stations[7][0], stations[7][1]) 
+                    s_colors[counter] = 0
+                    if c_made:
+                        self.sendColor(counter, 0)
+                if counter > num_stations-1:
+                    break
+                if not s_colors[counter]:
+                    s.fill(self.cyan, st)
+                counter += 1
+
             active_rects.append(rect)
             active_rects.append(self.light.light_rect)
-
+            
             # spotlight diamerter decreases as player moves mouse, then goes back to full size when player stops moving mouse
             if old_pos[0] != pos[0] or old_pos[1] != pos[1]:
                 light_size -= 1
@@ -178,12 +239,13 @@ class GameSpace:
 
             if light_size < 10:
                 light_size = 10
-
+            active_rects.append(old_char)
             active_rects.append(old_light)
             for ac_rect in active_rects:
                 pygame.display.update(ac_rect)
             old_rects = active_rects[:] 
             old_pos = pos
+            old_char = rect
             old_light = self.light.light.get_rect(center=(self.light.light_rect.x+light_size/2+1, self.light.light_rect.y+light_size/2+1))
 
 if __name__=='__main__':

@@ -18,9 +18,9 @@ log.startLogging(sys.stdout)
 
 enemy_x = 150
 enemy_y = 150
-
+stations = []
 c_made = False
-
+rec_stations = False
 ########## COMMAND CONNECTION ##################
 class MyCommandConnection(Protocol):
     def connectionMade(self):
@@ -30,14 +30,25 @@ class MyCommandConnection(Protocol):
         connection = self.transport
         self.transport.write("blahblah!\n".encode('utf-8'))
 
-    def dataReceived(self, data):
+    def dataReceived(self, datam):
         print("got data:".encode('utf-8'))
         global enemy_x
         global enemy_y
-        data = data.split(b":")
-        if data[0] == b"xy":
-            enemy_x = int(data[1])
-            enemy_y = int(data[2].strip(b'xy'))
+        datam = datam.split(b"#")
+        print(datam[0])
+        for data in datam:
+            data = data.split(b":")
+            if data[0] == b"xy":
+                enemy_x = int(data[1])
+                enemy_y = int(data[2].strip(b'xy').strip(b's'))
+            elif data[0] == b"s":
+                global rec_stations
+                global stations
+                rec_stations = True
+                station_x = []
+                station_y = []
+                st_rect = Rect(int(data[1]), int(data[2]), 70, 70)
+                stations.append(st_rect)
 
 class MyCommandConnectionFactory(ClientFactory):
     def __init__(self):
@@ -172,6 +183,16 @@ class GameSpace:
 
             if light_size < 10:
                 light_size = 10
+        
+            global rec_stations
+            global stations
+       
+
+            for st in stations:
+                self.square = 0, 250, 250
+                s.fill(self.square, st)
+                active_rects.append(st)
+                rec_stations = False
 
             active_rects.append(old_light)
             for ac_rect in active_rects:
