@@ -21,6 +21,8 @@ enemy_y = 150
 stations = []
 c_made = False
 rec_stations = False
+received_play = False
+received_quit = False
 ########## COMMAND CONNECTION ##################
 class MyCommandConnection(Protocol):
     def connectionMade(self):
@@ -51,6 +53,13 @@ class MyCommandConnection(Protocol):
                 stations.append(st_rect)
             elif data[0] == b"W":
                 print("YOU LOST")
+            elif data[0] == b"Q":
+                global received_quit
+                global received_play
+                if data[1] == b"q":
+                    received_quit = True
+                else:
+                    received_play = True
 
 class MyCommandConnectionFactory(ClientFactory):
     def __init__(self):
@@ -95,6 +104,10 @@ class GameSpace:
         global connection
         connection.write("W".encode('utf-8'))
 
+    def sendStatus(self, status):
+        global connection
+        connection.write("Q:{}".format(status).encode('utf-8'))
+
     def main(self):
         while (1):
             again = self.game()
@@ -127,6 +140,8 @@ class GameSpace:
         old_light = self.light.light_rect
         Thread(target=reactor.run, args=(False, )).start()
         win_display = False
+        global received_play
+        global received_quit
         while 1:
             self.clock.tick(60)
             global enemy_x
@@ -147,8 +162,10 @@ class GameSpace:
                     self.mouse_down = False
             pressed = pygame.key.get_pressed()
             if win_display and pressed[pygame.K_q]:
+                self.sendStatus("q")
                 return 0
             if win_display and pressed[pygame.K_p]:
+                self.sendStatus("p")
                 return 1
             pos = pygame.mouse.get_pos()
             self.light.light_rect.x = pos[0]
