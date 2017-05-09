@@ -31,11 +31,11 @@ class MyCommandConnection(Protocol):
         self.transport.write("blahblah!\n".encode('utf-8'))
 
     def dataReceived(self, datam):
-        print("got data:".encode('utf-8'))
+        #print("got data:".encode('utf-8'))
         global enemy_x
         global enemy_y
         datam = datam.split(b"#")
-        print(datam[0])
+        #print(datam[0])
         for data in datam:
             data = data.split(b":")
             if data[0] == b"xy":
@@ -145,8 +145,8 @@ class GameSpace:
             s.fill(self.black, old_light)
             self.screen.blit(self.light.light, self.light.light_rect)
             self.screen.blit(rot_star, rect)
-
-            self.sendSize(light_size)
+            if c_made:
+                self.sendSize(light_size)
 
             # red value of character will change if spotlight shined
             if not rect.colliderect(self.light.light_rect):

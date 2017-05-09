@@ -41,6 +41,7 @@ class MyCommandConnection(Protocol):
         global enemy_y
         data = data.split(b":")
         if data[0] == b"XY":
+            print("chaning x_y")
             enemy_x = int(data[1])
             enemy_y = int(data[2].strip(b'XY').strip(b'S'))
         elif data[0] == b"S":
@@ -210,12 +211,13 @@ class GameSpace:
             self.cyan = 40, 40, 5
             global s_colors
             global stations
+            global c_made
             counter = 0
             for st in stations:
                 s.fill(self.station, st)
                 if s_colors[counter]:
                     active_rects.append(st) 
-                if st.colliderect(rect):
+                if st.colliderect(rect) and c_made:
                     self.sendStation(st.x, st.y)# stations[1][0], stations[1][1], stations[2][0], stations[2][1], stations[3][0], stations[3][1], stations[4][0], stations[4][1], stations[5][0], stations[5][1], stations[6][0], stations[6][1], stations[7][0], stations[7][1]) 
                     s_colors[counter] = 0
                     if c_made:
