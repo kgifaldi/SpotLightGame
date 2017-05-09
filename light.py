@@ -23,6 +23,7 @@ c_made = False
 rec_stations = False
 received_play = False
 received_quit = False
+lost_display = False
 ########## COMMAND CONNECTION ##################
 class MyCommandConnection(Protocol):
     def connectionMade(self):
@@ -52,6 +53,7 @@ class MyCommandConnection(Protocol):
                 st_rect = Rect(int(data[1]), int(data[2]), 70, 70)
                 stations.append(st_rect)
             elif data[0] == b"W":
+                global lost_display = True
                 print("YOU LOST")
             elif data[0] == b"Q":
                 global received_quit
@@ -237,7 +239,14 @@ class GameSpace:
             old_rects = active_rects[:] 
             old_pos = pos
             old_light = self.light.light.get_rect(center=(self.light.light_rect.x+light_size/2+1, self.light.light_rect.y+light_size/2+1))
-            if win_display:
+            global lost_display
+            if lost_display:
+                pygame.font.init()
+                myfont2 = pygame.font.SysFont('Comic Sans MS', 50)
+                textsurface = myfont.render("Sorry. You've Lost!", True, (0,250,250))
+                self.screen.blit(textsurface, (250,250))
+                pygame.display.flip() 
+            elif win_display:
                 pygame.font.init()
                 myfont = pygame.font.SysFont('Comic Sans MS', 30)
                 textsurface = myfont.render("Congratulations. You've won!", True, (0,250,250))

@@ -50,7 +50,7 @@ class MyCommandConnection(Protocol):
             light_size = int(data[1].strip(b'S').strip(b'XY'))
         elif data[0] == b"W":
             global lost
-            lost = False
+            lost = True
             print("YOU LOST!")
 
 class MyCommandConnectionFactory(Factory):
@@ -103,7 +103,8 @@ class GameSpace:
         while (1):
             again = self.game()
             if not again:
-                break #end game
+                break #end game if winner does not want
+            # to go again
 
     def game(self):
         global light_size
@@ -157,7 +158,9 @@ class GameSpace:
         Thread(target=reactor.run, args=(False, )).start()
         clear_old_char = False
         stations_won = 0
-        self.won = False
+        global lost
+        lost_display = lost
+        win_display = False
         while 1:
             #global stations_sent
             #if c_made and not stations_sent:
@@ -233,7 +236,7 @@ class GameSpace:
                     stations_won += 1
                     if stations_won == len(stations):
                         self.sendWon()
-                        self.won = True
+                        win_display = True
                         print("YOU WON!") 
                 if counter > num_stations-1:
                     break
@@ -262,6 +265,23 @@ class GameSpace:
             old_pos = pos
             old_char = rect
             old_light = self.light.light.get_rect(center=(self.light.light_rect.x+light_size/2+1, self.light.light_rect.y+light_size/2+1))
+            if lost_display:
+                pygame.font.init()
+                myfont = pygame.font.SysFont('Comic Sans MS', 50)
+                textsurface = myfont.render("Sorry. You've lost!", True, (0,250,250))
+                self.screen.blit(textsurface, (250,250))
+                pygame.display.flip()
+            elif win_display:
+                pygame.font.init()
+                myfont = pygame.font.SysFont('Comic Sans MS', 30)
+                textsurface = myfont.render("Congratulations. You've won!", True, (0,250,250))
+                myfont2 = pygame.font.SysFont('Comic Sans MS', 50)
+                textsurface2 = myfont.render("Press q to quit. Press p to play again.", True, (0,250,250))
+                self.screen.blit(textsurface, (250,250))
+                self.screen.blit(textsurface2, (250,350))
+                pygame.display.flip()
+            
+                
 
 if __name__=='__main__':
     reactor.listenTCP(10130, MyCommandConnectionFactory())
