@@ -139,12 +139,17 @@ class GameSpace:
                     if light_size < 10:
                         light_size = 10
                     self.mouse_down = True
-                    if rect.colliderect(self.light.light_rect):
+                    if rect.colliderect(self.light.light_rect) and c_made:
                         self.sendWon()
                         print("WINNER WINNER CHICKEN DINNER!!!!!")
                         win_display = True
                 if event.type == pygame.MOUSEBUTTONUP:
                     self.mouse_down = False
+            pressed = pygame.key.get_pressed()
+            if win_display and pressed[pygame.K_q]:
+                return 0
+            if win_display and pressed[pygame.K_p]:
+                return 1
             pos = pygame.mouse.get_pos()
             self.light.light_rect.x = pos[0]
             self.light.light_rect.y = pos[1]
@@ -231,4 +236,5 @@ if __name__=='__main__':
     reactor.connectTCP("ash.campus.nd.edu", 10130, MyCommandConnectionFactory())
     gs = GameSpace()
     gs.main()
- 
+    pygame.quit()
+
