@@ -91,13 +91,9 @@ class GameSpace:
         global connection
         connection.write("S:{}".format(size).encode('utf-8'))
     
-    def sendWon():
-        global coneection
-        connection.write("W".encode('utf-8'))
-
-    def sendWin(self):
+    def sendWon(self):
         global connection
-        connection.write("W")
+        connection.write("W".encode('utf-8'))
 
     def main(self):
         r_val = 100 # red value of player
