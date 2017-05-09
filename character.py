@@ -20,6 +20,7 @@ log.startLogging(sys.stdout)
 
 c_made = False
 stations_sent = False
+lost = False
 
 enemy_x = 10
 enemy_y = 10
@@ -48,6 +49,8 @@ class MyCommandConnection(Protocol):
             global light_size
             light_size = int(data[1].strip(b'S').strip(b'XY'))
         elif data[0] == b"W":
+            global lost
+            lost = False
             print("YOU LOST!")
 
 class MyCommandConnectionFactory(Factory):
@@ -97,6 +100,12 @@ class GameSpace:
         connection.write("W".encode('utf-8'))
 
     def main(self):
+        while (1):
+            again = self.game()
+            if not again:
+                break #end game
+
+    def game(self):
         global light_size
         r_val = 100 # red value of player
         max_light = 125 # maximum diameter of spotlight
@@ -148,6 +157,7 @@ class GameSpace:
         Thread(target=reactor.run, args=(False, )).start()
         clear_old_char = False
         stations_won = 0
+        self.won = False
         while 1:
             #global stations_sent
             #if c_made and not stations_sent:
@@ -211,17 +221,19 @@ class GameSpace:
             global stations
             global c_made
             counter = 0
+            global lost
             for st in stations:
                 s.fill(self.station, st)
                 if s_colors[counter]:
                     active_rects.append(st) 
-                if st.colliderect(rect) and c_made and s_colors[counter]:
+                if st.colliderect(rect) and c_made and s_colors[counter] and not lost:
                     self.sendStation(st.x, st.y)# stations[1][0], stations[1][1], stations[2][0], stations[2][1], stations[3][0], stations[3][1], stations[4][0], stations[4][1], stations[5][0], stations[5][1], stations[6][0], stations[6][1], stations[7][0], stations[7][1]) 
                     s_colors[counter] = 0
                     self.sendColor(counter, 0)
                     stations_won += 1
                     if stations_won == len(stations):
                         self.sendWon()
+                        self.won = True
                         print("YOU WON!") 
                 if counter > num_stations-1:
                     break
