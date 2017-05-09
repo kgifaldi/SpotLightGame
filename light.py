@@ -96,6 +96,12 @@ class GameSpace:
         connection.write("W".encode('utf-8'))
 
     def main(self):
+        while (1):
+            again = self.game()
+            if not again:
+                break
+
+    def game(self):
         r_val = 100 # red value of player
         max_light = 125 # maximum diameter of spotlight
         light_size = max_light # light_size changes when light shined on player
