@@ -145,6 +145,10 @@ class GameSpace:
         global received_play
         global received_quit
         while 1:
+            if reveived_play:
+                return 1
+            if received_quit:
+                return 0
             self.clock.tick(60)
             global enemy_x
             global enemy_y
