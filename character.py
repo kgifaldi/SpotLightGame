@@ -47,6 +47,8 @@ class MyCommandConnection(Protocol):
         elif data[0] == b"S":
             global light_size
             light_size = int(data[1].strip(b'S').strip(b'XY'))
+        elif data[0] == b"W":
+            print("YOU LOST!")
 
 class MyCommandConnectionFactory(Factory):
     def __init__(self):
@@ -89,6 +91,10 @@ class GameSpace:
     def sendColor(self, num, col):
         global connection
         connection.write("c:{}:{}#".format(num, col).encode('utf-8'))
+
+    def sendWon():
+        global connection
+        connection.write("W".encode('utf-8'))
 
     def main(self):
         global light_size
@@ -141,6 +147,7 @@ class GameSpace:
         old_char = self.star.star_rect
         Thread(target=reactor.run, args=(False, )).start()
         clear_old_char = False
+        stations_won = 0
         while 1:
             #global stations_sent
             #if c_made and not stations_sent:
@@ -175,15 +182,6 @@ class GameSpace:
                         print("sending {}, {}".format(self.star.star_rect.x, self.star.star_rect.y))
                     else:
                         print("not connection")
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    light_size -= 70
-                    if light_size < 10:
-                        light_size = 10
-                    self.mouse_down = True
-                    if rect.colliderect(self.light.light_rect):
-                        print("WINNER WINNER CHICKEN DINNER!!!!!")
-                if event.type == pygame.MOUSEBUTTONUP:
-                    self.mouse_down = False
             pos = pygame.mouse.get_pos()
             global enemy_x
             global enemy_y
@@ -217,11 +215,14 @@ class GameSpace:
                 s.fill(self.station, st)
                 if s_colors[counter]:
                     active_rects.append(st) 
-                if st.colliderect(rect) and c_made:
+                if st.colliderect(rect) and c_made and s_colors[counter]:
                     self.sendStation(st.x, st.y)# stations[1][0], stations[1][1], stations[2][0], stations[2][1], stations[3][0], stations[3][1], stations[4][0], stations[4][1], stations[5][0], stations[5][1], stations[6][0], stations[6][1], stations[7][0], stations[7][1]) 
                     s_colors[counter] = 0
-                    if c_made:
-                        self.sendColor(counter, 0)
+                    self.sendColor(counter, 0)
+                    stations_won += 1
+                    if stations_won == len(stations):
+                        self.sendWon()
+                        print("YOU WON!") 
                 if counter > num_stations-1:
                     break
                 if not s_colors[counter]:

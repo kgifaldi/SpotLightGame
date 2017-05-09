@@ -49,6 +49,8 @@ class MyCommandConnection(Protocol):
                 station_y = []
                 st_rect = Rect(int(data[1]), int(data[2]), 70, 70)
                 stations.append(st_rect)
+            elif data[0] == b"W":
+                print("YOU LOST")
 
 class MyCommandConnectionFactory(ClientFactory):
     def __init__(self):
@@ -88,6 +90,10 @@ class GameSpace:
     def sendSize(self, size):
         global connection
         connection.write("S:{}".format(size).encode('utf-8'))
+    
+    def sendWon():
+        global coneection
+        connection.write("W".encode('utf-8'))
 
     def main(self):
         r_val = 100 # red value of player
@@ -127,6 +133,7 @@ class GameSpace:
                         light_size = 10
                     self.mouse_down = True
                     if rect.colliderect(self.light.light_rect):
+                        self.sendWon()
                         print("WINNER WINNER CHICKEN DINNER!!!!!")
                 if event.type == pygame.MOUSEBUTTONUP:
                     self.mouse_down = False
