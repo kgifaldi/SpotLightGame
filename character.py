@@ -50,7 +50,7 @@ class MyCommandConnection(Protocol):
             light_size = int(data[1].strip(b'S').strip(b'XY'))
         elif data[0] == b"W":
             global lost
-            lost = False
+            lost = True
             print("YOU LOST!")
 
 class MyCommandConnectionFactory(Factory):
@@ -103,7 +103,8 @@ class GameSpace:
         while (1):
             again = self.game()
             if not again:
-                break #end game
+                break #end game if winner does not want
+            # to go again
 
     def game(self):
         global light_size
