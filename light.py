@@ -91,8 +91,8 @@ class GameSpace:
         global connection
         connection.write("S:{}".format(size).encode('utf-8'))
     
-    def sendWon():
-        global coneection
+    def sendWon(self):
+        global connection
         connection.write("W".encode('utf-8'))
 
     def main(self):
@@ -126,6 +126,7 @@ class GameSpace:
         self.mouse_down = False
         old_light = self.light.light_rect
         Thread(target=reactor.run, args=(False, )).start()
+        win_display = False
         while 1:
             self.clock.tick(60)
             global enemy_x
@@ -138,11 +139,17 @@ class GameSpace:
                     if light_size < 10:
                         light_size = 10
                     self.mouse_down = True
-                    if rect.colliderect(self.light.light_rect):
+                    if rect.colliderect(self.light.light_rect) and c_made:
                         self.sendWon()
                         print("WINNER WINNER CHICKEN DINNER!!!!!")
+                        win_display = True
                 if event.type == pygame.MOUSEBUTTONUP:
                     self.mouse_down = False
+            pressed = pygame.key.get_pressed()
+            if win_display and pressed[pygame.K_q]:
+                return 0
+            if win_display and pressed[pygame.K_p]:
+                return 1
             pos = pygame.mouse.get_pos()
             self.light.light_rect.x = pos[0]
             self.light.light_rect.y = pos[1]
@@ -213,10 +220,21 @@ class GameSpace:
             old_rects = active_rects[:] 
             old_pos = pos
             old_light = self.light.light.get_rect(center=(self.light.light_rect.x+light_size/2+1, self.light.light_rect.y+light_size/2+1))
+            if win_display:
+                pygame.font.init()
+                myfont = pygame.font.SysFont('Comic Sans MS', 30)
+                textsurface = myfont.render("Congratulations. You've won!", True, (0,250,250))
+                myfont2 = pygame.font.SysFont('Comic Sans MS', 50)
+                textsurface2 = myfont.render("Press q to quit. Press p to play again.", True, (0,250,250))
+                self.screen.blit(textsurface, (250,250))
+                self.screen.blit(textsurface2, (250,350))
+                pygame.display.flip()
+                
 
 if __name__=='__main__':
     global connection
     reactor.connectTCP("ash.campus.nd.edu", 10130, MyCommandConnectionFactory())
     gs = GameSpace()
     gs.main()
- 
+    pygame.quit()
+
