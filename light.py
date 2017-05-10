@@ -32,6 +32,12 @@ class MyCommandConnection(Protocol):
         c_made = True
         connection = self.transport
         self.transport.write("blahblah!\n".encode('utf-8'))
+    
+    def connectionLost(self, reason):
+        print("Lost connection: %s" % reason)
+        global received_quit
+        received_quit = True
+        self.transport.loseConnection()
 
     def dataReceived(self, datam):
         #print("got data:".encode('utf-8'))
@@ -113,10 +119,9 @@ class GameSpace:
 
     def main(self):
         Thread(target=reactor.run, args=(False, )).start()
-        while (1):
+        again = 1
+        while again:
             again = self.game()
-            if not again:
-                break
 
     def game(self):
         r_val = 100 # red value of player
@@ -170,12 +175,10 @@ class GameSpace:
             pressed = pygame.key.get_pressed()
             if win_display and pressed[pygame.K_q]:
                 self.sendStatus("q")
-                self.sendStatus("q")
-                self.sendStatus("q")
+                global connection
+                connection.loseConnection()
                 return 0
             if win_display and pressed[pygame.K_p]:
-                self.sendStatus("p")
-                self.sendStatus("p")
                 self.sendStatus("p")
                 return 1
             pos = pygame.mouse.get_pos()

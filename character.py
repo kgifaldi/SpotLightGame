@@ -36,6 +36,12 @@ class MyCommandConnection(Protocol):
         c_made = True
         global connection
         connection = self.transport
+
+    def connectionLost(self, reason):
+        print("Lost connection: %s" % reason)
+        global received_quit
+        received_quit = True
+        self.transport.loseConnection()
         
     def dataReceived(self, data):
         global enemy_x
@@ -57,8 +63,9 @@ class MyCommandConnection(Protocol):
             global received_quit
             global received_play
             if data[1] == b'q':
-                print("HHHHHHHHHHER")
+                print("Got quit")
                 received_quit = True
+                print("Quit true")
             else:
                 received_play = True
 
@@ -105,17 +112,17 @@ class GameSpace:
         global connection
         connection.write("c:{}:{}#".format(num, col).encode('utf-8'))
 
-    def sendWon():
+    def sendWon(self):
         global connection
         connection.write("W".encode('utf-8'))
 
     def main(self):
         Thread(target=reactor.run, args=(False, )).start()
-        while (1):
+        again = 1 
+        while again:
+            print(again)
             again = self.game()
-            if not again:
-                break #end game if winner does not want
-            # to go again
+            # returns 1 to go again
 
     def sendStatus(self, status):
         global connection
@@ -171,9 +178,7 @@ class GameSpace:
         old_light = self.light.light_rect
         old_char = self.star.star_rect
         clear_old_char = False
-        stations_won = 0
-        global lost
-        lost_display = lost
+        stations_won = 0 
         win_display = False
         while 1:
             #global stations_sent
@@ -181,9 +186,12 @@ class GameSpace:
                 #print("send stations")
                 #for i in range(0, 7):
                 #stations_sent = True
+            global lost
+            lost_display = lost
             global received_quit
             global received_play
             if received_quit:
+                print("Returning 0")
                 return 0
             if received_play:
                 return 1
@@ -191,6 +199,8 @@ class GameSpace:
             pressed = pygame.key.get_pressed()
             if win_display and pressed[pygame.K_q]:
                 self.sendStatus("q")
+                global connection
+                connection.loseConnection()
                 return 0
             if win_display and pressed[pygame.K_p]:
                 self.sendStatus("p")
