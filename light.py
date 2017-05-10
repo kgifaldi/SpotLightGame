@@ -53,7 +53,8 @@ class MyCommandConnection(Protocol):
                 st_rect = Rect(int(data[1]), int(data[2]), 70, 70)
                 stations.append(st_rect)
             elif data[0] == b"W":
-                global lost_display = True
+                global lost_display
+                lost_display = True
                 print("YOU LOST")
             elif data[0] == b"Q":
                 global received_quit
@@ -145,7 +146,7 @@ class GameSpace:
         global received_play
         global received_quit
         while 1:
-            if reveived_play:
+            if received_play:
                 return 1
             if received_quit:
                 return 0
@@ -246,7 +247,7 @@ class GameSpace:
             global lost_display
             if lost_display:
                 pygame.font.init()
-                myfont2 = pygame.font.SysFont('Comic Sans MS', 50)
+                myfont = pygame.font.SysFont('Comic Sans MS', 50)
                 textsurface = myfont.render("Sorry. You've Lost!", True, (0,250,250))
                 self.screen.blit(textsurface, (250,250))
                 pygame.display.flip() 
