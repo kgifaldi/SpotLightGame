@@ -31,7 +31,6 @@ s_colors = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ########## COMMAND CONNECTION ##################
 class MyCommandConnection(Protocol):
     def connectionMade(self):
-        self.transport.write("W: message: hi!\n".encode('utf-8'))
         print("connectionmade")
         global c_made
         c_made = True
@@ -249,7 +248,7 @@ class GameSpace:
                     s_colors[counter] = 0
                     self.sendColor(counter, 0)
                     stations_won += 1
-                    if stations_won == len(stations):
+                    if stations_won == len(stations) and len(stations) > 0:
                         self.sendWon()
                         win_display = True
                         print("YOU WON!") 
