@@ -25,3 +25,5 @@ player can decide to play again or quit by pressing p or q. If the player presse
 q the game should start again, but if the player presses q both screens should close.
 Simply open the game on two machines that connect to the same port to start playing.
 We hope you enjoy!
+note: we had better results when opening character.py first, then connecting
+light.py
