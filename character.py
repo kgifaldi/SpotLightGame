@@ -21,7 +21,8 @@ log.startLogging(sys.stdout)
 c_made = False
 stations_sent = False
 lost = False
-
+received_play = False
+received_quit = False
 enemy_x = 10
 enemy_y = 10
 
@@ -52,6 +53,14 @@ class MyCommandConnection(Protocol):
             global lost
             lost = True
             print("YOU LOST!")
+        elif data[0] == b"Q":
+            global received_quit
+            global received_play
+            if data[1] == b"q":
+                received_quit = True
+            else:
+                received_play = True
+
 
 class MyCommandConnectionFactory(Factory):
     def __init__(self):
@@ -160,6 +169,8 @@ class GameSpace:
         stations_won = 0
         global lost
         lost_display = lost
+        global received_quit
+        global received_play
         win_display = False
         while 1:
             #global stations_sent
@@ -167,6 +178,10 @@ class GameSpace:
                 #print("send stations")
                 #for i in range(0, 7):
                 #stations_sent = True
+            if received_quit:
+                return 0
+            if received_play:
+                return 1
             self.clock.tick(60)
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
@@ -284,6 +299,6 @@ class GameSpace:
                 
 
 if __name__=='__main__':
-    reactor.listenTCP(10130, MyCommandConnectionFactory())
+    reactor.listenTCP(10132, MyCommandConnectionFactory())
     gs = GameSpace()
     gs.main()

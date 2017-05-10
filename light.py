@@ -259,7 +259,7 @@ class GameSpace:
 
 if __name__=='__main__':
     global connection
-    reactor.connectTCP("ash.campus.nd.edu", 10130, MyCommandConnectionFactory())
+    reactor.connectTCP("ash.campus.nd.edu", 10132, MyCommandConnectionFactory())
     gs = GameSpace()
     gs.main()
     pygame.quit()
