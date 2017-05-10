@@ -112,6 +112,7 @@ class GameSpace:
         connection.write("Q:{}".format(status).encode('utf-8'))
 
     def main(self):
+        Thread(target=reactor.run, args=(False, )).start()
         while (1):
             again = self.game()
             if not again:
@@ -141,11 +142,10 @@ class GameSpace:
         pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP]) # better performance
         self.mouse_down = False
         old_light = self.light.light_rect
-        Thread(target=reactor.run, args=(False, )).start()
         win_display = False
-        global received_play
-        global received_quit
         while 1:
+            global received_play
+            global received_quit
             if received_play:
                 return 1
             if received_quit:
@@ -170,8 +170,12 @@ class GameSpace:
             pressed = pygame.key.get_pressed()
             if win_display and pressed[pygame.K_q]:
                 self.sendStatus("q")
+                self.sendStatus("q")
+                self.sendStatus("q")
                 return 0
             if win_display and pressed[pygame.K_p]:
+                self.sendStatus("p")
+                self.sendStatus("p")
                 self.sendStatus("p")
                 return 1
             pos = pygame.mouse.get_pos()

@@ -44,18 +44,20 @@ class MyCommandConnection(Protocol):
         if data[0] == b"XY":
             print("chaning x_y")
             enemy_x = int(data[1])
-            enemy_y = int(data[2].strip(b'XY').strip(b'S'))
+            enemy_y = int(data[2].strip(b'XY').strip(b'S').strip(b'W').strip(b'Q'))
         elif data[0] == b"S":
             global light_size
-            light_size = int(data[1].strip(b'S').strip(b'XY'))
+            light_size = int(data[1].strip(b'S').strip(b'XY').strip(b'W').strip(b'Q'))
         elif data[0] == b"W":
             global lost
             lost = True
             print("YOU LOST!")
         elif data[0] == b"Q":
+            print("Recieved status: {}".format(data[1].strip(b'Q')))
             global received_quit
             global received_play
-            if data[1] == b"q":
+            if data[1] == b'q':
+                print("HHHHHHHHHHER")
                 received_quit = True
             else:
                 received_play = True
@@ -108,11 +110,16 @@ class GameSpace:
         connection.write("W".encode('utf-8'))
 
     def main(self):
+        Thread(target=reactor.run, args=(False, )).start()
         while (1):
             again = self.game()
             if not again:
                 break #end game if winner does not want
             # to go again
+
+    def sendStatus(self, status):
+        global connection
+        connection.write("Q:{}".format(status).encode('utf-8'))
 
     def game(self):
         global light_size
@@ -163,13 +170,10 @@ class GameSpace:
         self.mouse_down = False
         old_light = self.light.light_rect
         old_char = self.star.star_rect
-        Thread(target=reactor.run, args=(False, )).start()
         clear_old_char = False
         stations_won = 0
         global lost
         lost_display = lost
-        global received_quit
-        global received_play
         win_display = False
         while 1:
             #global stations_sent
@@ -177,11 +181,20 @@ class GameSpace:
                 #print("send stations")
                 #for i in range(0, 7):
                 #stations_sent = True
+            global received_quit
+            global received_play
             if received_quit:
                 return 0
             if received_play:
                 return 1
             self.clock.tick(60)
+            pressed = pygame.key.get_pressed()
+            if win_display and pressed[pygame.K_q]:
+                self.sendStatus("q")
+                return 0
+            if win_display and pressed[pygame.K_p]:
+                self.sendStatus("p")
+                return 1
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
                     clear_old_char = True
@@ -301,3 +314,4 @@ if __name__=='__main__':
     reactor.listenTCP(10132, MyCommandConnectionFactory())
     gs = GameSpace()
     gs.main()
+    pygame.quit()
