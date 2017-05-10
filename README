@@ -1,0 +1,27 @@
+Kyle Gifaldi
+John Nolan
+Pygame/Twisted Project
+
+Hide and Seek
+
+For our final project we created a hide and seek game. We spent a while
+trying to think of an original idea, and we came up with a playing field
+where one player has more limited visibility. This would only work through
+a network conneciton. 
+One player can control a spotlight and attempts to click on the other character, 
+a simple square. However, the more this spotlight moves the smaller it becomes,
+and if the player ever clicks on the screen it becomes tiny. We hope this will
+discourage players from scanning across the screen and clicking randomly.
+The square player attempts to collect a series of blocks that are only visible
+in its playing field. However, once it collects one of these blocks it lights 
+up, becoming visible to the other player. These blocks are scattered randomly
+about the playing field, but as the spotlight sees more of them light up it has
+a stronger clue of where the square was recently and where it may be moving.
+The spotlight can be controlled with the mouse, but if it moves too quickly it
+will become smaller for a brief time. The spotlight player can use the mouse button
+to click on the other player. The square player can use the arrow keys to move around
+and attempt to collect the other blocks. Once one of the players win, the winning
+player can decide to play again or quit by pressing p or q. If the player presses
+q the game should start again, but if the player presses q both screens should close.
+Simply open the game on two machines that connect to the same port to start playing.
+We hope you enjoy!
